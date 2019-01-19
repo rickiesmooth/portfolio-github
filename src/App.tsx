@@ -1,25 +1,56 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import { normalizeRepos, ReposNormalized } from "./utils/api";
+
 import './App.css';
 
-class App extends Component {
+class App extends Component<{}, { repos: ReposNormalized[] }> {
+  state = {
+    repos: [] as ReposNormalized[]
+  }
+
+  private username = ""
+
+  handleSubmit = async (username: string) => {
+    const repos = await normalizeRepos(username)
+    this.setState({ repos })
+  }
+
+  handleInput = (username: string) => {
+    this.username = username
+  }
+
   render() {
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.tsx</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
+          <h1>Github Portfolio</h1>
         </header>
+        <div>
+          <span>username</span>
+          <form onSubmit={e => {
+            this.handleSubmit(this.username)
+            e.preventDefault()
+          }}>
+            <div>
+              <label htmlFor="usernameInput">Username</label>
+              <input type="text" id="usernameInput" placeholder="Username" onChange={e => {
+                this.handleInput(e.currentTarget.value)
+                e.preventDefault()
+              }} />
+            </div>
+            <button type="submit" >Confirm identity</button>
+          </form>
+        </div>
+        <div>
+          {this.state.repos.map((repo, i) => {
+            return (
+              <div>
+                <p key={i}>{repo.name}</p>
+                <p key={i}>{repo.contributors.length}</p>
+              </div>
+            )
+          })}
+        </div>
       </div>
     );
   }

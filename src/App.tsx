@@ -1,56 +1,72 @@
 import React, { Component } from 'react';
 import { normalizeRepos, ReposNormalized } from "./utils/api";
 
-import './App.css';
+import './App.scss';
 
-class App extends Component<{}, { repos: ReposNormalized[] }> {
+class App extends Component<{}, { repos: ReposNormalized[], loading: boolean }> {
   state = {
-    repos: [] as ReposNormalized[]
+    repos: [] as ReposNormalized[],
+    loading: false
   }
 
   private username = ""
 
-  handleSubmit = async (username: string) => {
+  readonly handleSubmit = async (username: string) => {
+    this.setState({ loading: true })
     const repos = await normalizeRepos(username)
-    this.setState({ repos })
+    this.setState({ repos, loading: false })
   }
 
-  handleInput = (username: string) => {
+  readonly handleInput = (username: string) => {
     this.username = username
   }
 
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <h1>Github Portfolio</h1>
+        <header className="App-header jumbotron">
+          <div className="container">
+            <h1 className="text-light">Github Portfolio</h1>
+          </div>
         </header>
-        <div>
-          <span>username</span>
-          <form onSubmit={e => {
-            this.handleSubmit(this.username)
-            e.preventDefault()
-          }}>
-            <div>
-              <label htmlFor="usernameInput">Username</label>
-              <input type="text" id="usernameInput" placeholder="Username" onChange={e => {
+        <section className="py-4 bg-light">
+          <div className="container">
+            <form className="form-inline" style={{ maxWidth: 768 }} onSubmit={e => {
+              this.handleSubmit(this.username)
+              e.preventDefault()
+            }}>
+              <span className="col-xs-3 col-md-3 d-flex align-items-center">
+                <i className="fa fa-user" style={{ fontSize: 32 }}></i>
+                <span className="ml-3">Username</span>
+              </span>
+              <input className="col-xs-6 col-md-6 form-control" type=" text" placeholder="Username" onChange={e => {
                 this.handleInput(e.currentTarget.value)
                 e.preventDefault()
               }} />
-            </div>
-            <button type="submit" >Confirm identity</button>
-          </form>
-        </div>
-        <div>
-          {this.state.repos.map((repo, i) => {
+              <div className="col-xs-3 col-md-3" >
+                <button className="btn btn-primary w-100" type="submit">Retrieve</button>
+              </div>
+            </form>
+          </div>
+        </section>
+        <section >
+          {this.state.loading ? <p className="container my-4">loading...</p> : this.state.repos.map((repo, i) => {
             return (
-              <div>
-                <p key={i}>{repo.name}</p>
-                <p key={i}>{repo.contributors.length}</p>
+              <div className="border-bottom my-4" key={i} >
+                <div className="container">
+                  <div className="col-md-12 ">
+                    <p >{repo.name}</p>
+                    <ul>
+                      {repo.contributors.map((contributor, j) =>
+                        <li key={j}>{`${contributor.login} (${contributor.contributions} commits)`}</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
               </div>
             )
           })}
-        </div>
+        </section>
       </div>
     );
   }

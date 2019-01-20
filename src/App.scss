@@ -1,0 +1,7 @@
+
+@import "~bootstrap/scss/mixins";
+
+.App-header {
+  @include gradient-x(#316ab0, #9c5ad3);
+  margin-bottom: 0;
+} 

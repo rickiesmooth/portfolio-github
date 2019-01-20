@@ -9,7 +9,7 @@ export type ContributorsRaw = {
 }
 
 export type ReposRaw = {
-    name: string;
+    full_name: string;
     contributors_url: string
 }
 
@@ -18,7 +18,7 @@ export type ReposNormalized = {
     contributors: ContributorsRaw[]
 }
 
-const getPaginatedResults = async <T>(url: string, results = [] as T[]): Promise<T[]> =>
+const getAllGithubResults = async <T>(url: string, results = [] as T[]): Promise<T[]> =>
     fetch(url, {
         headers: {
             Authorization: `token ${token}`
@@ -27,27 +27,23 @@ const getPaginatedResults = async <T>(url: string, results = [] as T[]): Promise
         headers: res.headers,
         json
     })).then(async ({ json, headers }) => {
-        const retrivedResults = [...results, ...json]
+        const retrievedResults = [...results, ...json]
         const link = headers.get('Link')
-        const parsedPaginationLinks = parse(link)
+        const parsedPaginationLinks = link && parse(link)
         const next = parsedPaginationLinks && parsedPaginationLinks.next
 
-        if (next) {
-            return await getPaginatedResults(next.url, retrivedResults)
-        } else {
-            return retrivedResults
-        }
+        return next ? await getAllGithubResults(next.url, retrievedResults) : retrievedResults
 
     }));
 
 export const normalizeRepos = async (username: string) => {
-    const repos = await getPaginatedResults<ReposRaw>(`https://api.github.com/users/${username}/repos`)
-    return Promise.all<ReposNormalized>(repos.map(async ({ contributors_url, name }: ReposRaw): Promise<ReposNormalized> => {
-        const allContributors = await getPaginatedResults<ContributorsRaw>(contributors_url)
+    const allRepos = await getAllGithubResults<ReposRaw>(`https://api.github.com/users/${username}/repos`)
+    return Promise.all(allRepos.map(async ({ contributors_url, full_name }) => {
+        const allContributors = await getAllGithubResults<ContributorsRaw>(contributors_url)
         return {
-            name,
+            name: full_name,
             // I know I'm looping (n0 * 2) over the array twice but this is more readable
-            contributors: allContributors.map(({ contributions, login, html_url, avatar_url }: ContributorsRaw) => {
+            contributors: allContributors.map(({ contributions, login, html_url, avatar_url }) => {
                 return ({
                     login,
                     contributions,

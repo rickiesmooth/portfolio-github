@@ -18,6 +18,7 @@
         "received_events_url": "https://api.github.com/users/octocat/received_events",
         "type": "User",
         "site_admin": false,
+        "contributions": 1,
         "permissions": {
             "pull": true,
             "push": true,

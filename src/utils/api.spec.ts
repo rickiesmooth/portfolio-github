@@ -17,7 +17,18 @@ const collaboratorsFixture = require("./collaborator.fixtures.json");
 describe("testing api", () => {
     it('should properly decorate the fullName', async () => {
         await normalizeRepos("rickiesmooth").then(res => {
-            expect(res).toBeTruthy()
+            const repo = res.repos[0]
+
+            expect(res.error).toBeNull
+            expect(res.repos).toBeTruthy
+
+            expect(repo.name).toEqual("rickiesmooth/botkit")
+            expect(repo.contributors[0]).toEqual({
+                avatar_url: "https://github.com/images/error/octocat_happy.gif",
+                contributions: 1,
+                html_url: "https://github.com/octocat",
+                login: "octocat"
+            })
         });
     });
 

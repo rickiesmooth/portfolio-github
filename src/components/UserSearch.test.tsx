@@ -9,7 +9,7 @@ it('renders search', () => {
     expect(wrapper.find('input').exists()).toEqual(true);
 });
 
-it('should not crash when it has error', () => {
+it('should not crash when submitted', () => {
     const wrapper = shallow(<UserSearch />);
 
     wrapper.find('input').simulate('change', {
@@ -17,7 +17,7 @@ it('should not crash when it has error', () => {
         preventDefault: () => undefined
     })
 
-    wrapper.instance().handleSubmit = function (username: string) {
+    wrapper.instance().handleSubmit = function () {
         expect(this.username).toEqual(USER_NAME)
     }
 

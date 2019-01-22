@@ -1,5 +1,17 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+Prerequisites:
+* Node
+* a GitHub token (e.g. "646dc6c29cea57fd413ac7c391428dfc14f20e53") 
+* a valid .env file with github token: `echo "REACT_APP_GITHUB_TOKEN=646dc6c29cea57fd413ac7c391428dfc14f20e53" >.env`
+
+Requirements: 
+* React-based single page application
+* Text input that holds username.
+* when 'Retrieve' is pressed, the app should show all public repositories of the user, 
+* for each repository—list contributors ordered by the number of contributions per contributor in descending order.
+* Use GitHub REST API.
+
 ## Available Scripts
 
 In the project directory, you can run:

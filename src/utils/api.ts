@@ -1,5 +1,4 @@
 var parse = require('parse-link-header');
-const token = "646dc6c29cea57fd413ac7c391428dfc14f20e53";
 
 export type ContributorsRaw = {
     contributions: number;
@@ -21,7 +20,7 @@ export type ReposNormalized = {
 const getAllGithubResults = async<T>(url: string, results = [] as T[]): Promise<{ data: T[], error?: Error }> =>
     fetch(url, {
         headers: {
-            Authorization: `token ${token}`
+            Authorization: `token ${process.env.REACT_APP_GITHUB_TOKEN}`
         }
     }).then(res => res.json().then(json => ({
         headers: res.headers,

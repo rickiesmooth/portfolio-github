@@ -18,7 +18,7 @@ export type ReposNormalized = {
     contributors: ContributorsRaw[]
 }
 
-const getAllGithubResults = async <T>(url: string, results = [] as T[]): Promise<T[]> =>
+const getAllGithubResults = async<T>(url: string, results = [] as T[]): Promise<{ data: T[], error?: Error }> =>
     fetch(url, {
         headers: {
             Authorization: `token ${token}`
@@ -27,30 +27,37 @@ const getAllGithubResults = async <T>(url: string, results = [] as T[]): Promise
         headers: res.headers,
         json
     })).then(async ({ json, headers }) => {
+        if (res.status > 300) {
+            return { error: new Error(res.statusText), data: [] }
+        }
+
         const retrievedResults = [...results, ...json]
         const link = headers.get('Link')
-        const parsedPaginationLinks = link && parse(link)
-        const next = parsedPaginationLinks && parsedPaginationLinks.next
+        const parsedLink = link && parse(link)
 
-        return next ? await getAllGithubResults(next.url, retrievedResults) : retrievedResults
+        if (!parsedLink || !parsedLink.next) {
+            return { data: retrievedResults }
+        }
 
+        return getAllGithubResults(parsedLink.next.url, retrievedResults)
     }));
 
 export const normalizeRepos = async (username: string) => {
-    const allRepos = await getAllGithubResults<ReposRaw>(`https://api.github.com/users/${username}/repos`)
-    return Promise.all(allRepos.map(async ({ contributors_url, full_name }) => {
-        const allContributors = await getAllGithubResults<ContributorsRaw>(contributors_url)
-        return {
-            name: full_name,
-            // I know I'm looping (n0 * 2) over the array twice but this is more readable
-            contributors: allContributors.map(({ contributions, login, html_url, avatar_url }) => {
-                return ({
-                    login,
-                    contributions,
-                    html_url,
-                    avatar_url
-                })
-            }).sort((a, b) => b.contributions - a.contributions)
-        }
-    }))
+    const { error, data } = await getAllGithubResults<ReposRaw>(`https://api.github.com/users/${username}/repos`)
+
+    return {
+        error,
+        repos: await Promise.all(data.map(({ contributors_url, full_name }) =>
+            getAllGithubResults<ContributorsRaw>(contributors_url)
+                .then(allContributors => ({
+                    name: full_name,
+                    // I know I'm looping (n0 * 2) over the array twice but this is more readable
+                    contributors: allContributors.data.map(({ contributions, login, html_url, avatar_url }) => ({
+                        login,
+                        contributions,
+                        html_url,
+                        avatar_url
+                    })).sort((a, b) => b.contributions - a.contributions)
+                }))))
+    }
 }    
